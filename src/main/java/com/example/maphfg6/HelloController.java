@@ -144,7 +144,6 @@ public class HelloController {
      */
     @FXML
     public void register() {
-        System.out.println(firstName);
         registrationSystem = new RegistrationSystem("jdbc:mysql://localhost:3306/university", "root", "password31");
         try {
             registrationSystem.register(Long.parseLong(courseId.getText()) ,id);
