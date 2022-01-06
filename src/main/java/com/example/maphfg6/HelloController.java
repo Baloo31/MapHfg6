@@ -8,6 +8,7 @@ import Exceptions.MaxEnrollmentSurpassedException;
 import Model.Course;
 import Model.Student;
 import Model.Teacher;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -20,10 +21,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 
 public class HelloController {
@@ -35,7 +33,7 @@ public class HelloController {
     @FXML
     private Label loginFailed;
 
-    private RegistrationSystem registrationSystem;
+    private static RegistrationSystem registrationSystem;
 
     @FXML
     private TextField firstNameBox;
@@ -52,16 +50,22 @@ public class HelloController {
     @FXML
     private Label status;
 
-    private String firstName;
-    private String lastName;
-    private long id;
+    private static String firstName;
+    private static String lastName;
+    private static long id;
 
     @FXML
-    private TableView<Student> studentTableView;
+    private ListView<String> studentListView;
 
     @FXML
     private Label credits;
 
+    /**
+     * Login for a student or a teacher
+     * @param event event
+     * @throws SQLException student does not exist
+     * @throws IOException invalid input
+     */
     @FXML
     public void onLogInButtonClick(ActionEvent event) throws SQLException, IOException {
         if (firstName == null) {
@@ -78,9 +82,9 @@ public class HelloController {
                         stage.setScene(scene);
                         stage.show();
 
-                        this.firstName = firstNameBox.getText();
-                        this.lastName = lastNameBox.getText();
-                        this.id = teacher.getTeacherId();
+                        firstName = firstNameBox.getText();
+                        lastName = lastNameBox.getText();
+                        id = teacher.getTeacherId();
 
                     }
                 }
@@ -96,9 +100,9 @@ public class HelloController {
                         stage.setScene(scene);
                         stage.show();
 
-                        this.firstName = firstNameBox.getText();
-                        this.lastName = lastNameBox.getText();
-                        this.id = stud.getStudentId();
+                        firstName = firstNameBox.getText();
+                        lastName = lastNameBox.getText();
+                        id = stud.getStudentId();
 
                     }
                 }
@@ -107,10 +111,15 @@ public class HelloController {
         } else loginFailed.setText(String.format("Already logged in as %s %s !", firstName, lastName));
     }
 
+
+    /**
+     * Displays for a teacher the names of the students enrolled to his courses
+     * @throws SQLException
+     */
     @FXML
     public void onDisplayStudentsButtonClick() throws SQLException {
         registrationSystem = new RegistrationSystem("jdbc:mysql://localhost:3306/university", "root", "password31");
-        studentTableView = new TableView<>();
+
 
         Set<Long> students = new TreeSet<>();
         for (Course course: registrationSystem.filterCoursesWithStudents()) {
@@ -119,22 +128,26 @@ public class HelloController {
             }
         }
 
-        List<Student> studentsEnrolled = new LinkedList<>();
+        List<String> studentsNames = new ArrayList<>();
         for (Student stud : registrationSystem.retrieveAllStudents()) {
             if (students.contains(stud.getStudentId())){
-                studentsEnrolled.add(stud);
+                studentsNames.add(String.format("%s %s", stud.getFirstName(), stud.getLastName()));
             }
         }
-        studentTableView.setItems((ObservableList<Student>) studentsEnrolled);
-
+        ObservableList<String> objects = FXCollections.observableArrayList(studentsNames);
+        studentListView.getItems().addAll(objects);
     }
 
+
+    /**
+     * Registers a student to a course
+     */
     @FXML
     public void register() {
         System.out.println(firstName);
         registrationSystem = new RegistrationSystem("jdbc:mysql://localhost:3306/university", "root", "password31");
         try {
-            registrationSystem.register(Long.parseLong(courseId.getText()) ,this.id);
+            registrationSystem.register(Long.parseLong(courseId.getText()) ,id);
             status.setText("Operation successfully performed!");
         } catch (ElementDoesNotExistException e) {
             status.setText("Error! Invalid course id!");
@@ -149,15 +162,36 @@ public class HelloController {
         }
     }
 
+
+    /**
+     * Shows the number of credits of a student
+     * @throws SQLException
+     */
     @FXML
     public void getCredits() throws SQLException {
-        int credtis = registrationSystem.calculateStudentCredits(new Student(firstName, lastName, new LinkedList<>(), id));
-        credits.setText(credits.toString());
+        int cred = registrationSystem.calculateStudentCredits(registrationSystem.retrieveAllStudents().stream().filter(student -> student.getStudentId() == id).toList().get(0));
+        credits.setText(String.valueOf(cred));
     }
 
+
+    /**
+     * Closes the application
+     * @param event event
+     */
     @FXML
     public void quit(ActionEvent event){
         stage = (Stage)((Node)event.getSource()).getScene().getWindow();
         stage.close();
+    }
+
+
+    /**
+     * Refreshes the list of students
+     * @throws SQLException
+     */
+    @FXML
+    public void onRefreshButtonClick() throws SQLException {
+        studentListView.getItems().clear();
+        onDisplayStudentsButtonClick();
     }
 }
