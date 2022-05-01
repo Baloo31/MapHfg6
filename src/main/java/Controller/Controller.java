@@ -1,6 +1,6 @@
-package com.example.maphfg6;
+package Controller;
 
-import Controller.RegistrationSystem;
+import Model.RegistrationSystem;
 import Exceptions.AlreadyExistsException;
 import Exceptions.ElementDoesNotExistException;
 import Exceptions.MaxCreditsSurpassedException;
@@ -24,7 +24,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 
-public class HelloController {
+public class Controller {
     private Stage stage;
     private Scene scene;
     private Parent root;

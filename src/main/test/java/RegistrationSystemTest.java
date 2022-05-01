@@ -1,4 +1,4 @@
-import Controller.RegistrationSystem;
+import Model.RegistrationSystem;
 import Exceptions.*;
 import Model.Course;
 import Model.Student;

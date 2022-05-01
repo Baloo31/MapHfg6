@@ -60,7 +60,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.example.maphfg6/com.example.maphfg6.HelloApplication</mainClass>
+                            <mainClass>com.example.maphfg6/com.example.maphfg6.UserInterface</mainClass>
                         </configuration>
                     </execution>
                 </executions>
